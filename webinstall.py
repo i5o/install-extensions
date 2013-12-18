@@ -23,9 +23,7 @@ import urllib
 import tempfile
 import commands
 
-from threading import Thread
 from gettext import gettext as _
-from threading import Thread
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -52,15 +50,18 @@ from jarabe.webservice.accountsmanager import _get_webservice_module_paths
 from jarabe.webservice.accountsmanager import _get_service_name
 from jarabe.webservice.accountsmanager import _get_webaccount_paths
 
+
 def get_user_color():
     client = GConf.Client.get_default()
     color = client.get_string("/desktop/sugar/user/color")
     xo_color = XoColor(color)
     return xo_color
 
+
 def get_stroke_color():
     xo_color = get_user_color()
     return xo_color.get_stroke_color()
+
 
 def get_fill_color():
     xo_color = get_user_color()
@@ -70,13 +71,13 @@ def get_fill_color():
 class Install(activity.Activity):
     def __init__(self, handle):
         activity.Activity.__init__(self, handle)
-        
+
         self.ensure_icons()
         self._selection_canvas = SelectionCanvas()
-        #box = self.get_eventbox(self._selection_canvas, 'white') 
+        #box = self.get_eventbox(self._selection_canvas, 'white')
         self._selection_canvas.connect('action', self.__action)
-        
-        self.build_toolbar()     
+
+        self.build_toolbar()
         self.set_canvas(self._selection_canvas)
         self.show_all()
 
@@ -112,7 +113,7 @@ class Install(activity.Activity):
         activity_button = ActivityButton(self)
         toolbar.insert(activity_button, -1)
         toolbar.insert(Gtk.SeparatorToolItem(), -1)
-        
+
         home = ToolButton('gtk-home')
         toolbar.insert(home, -1)
         home.connect('clicked', self.__set_home)
@@ -128,12 +129,10 @@ class Install(activity.Activity):
 
         self.set_toolbar_box(toolbox)
 
-
     def ensure_icons(self):
         user = os.path.join(env.get_profile_path(), 'extensions')
         theme = Gtk.IconTheme.get_default()
         theme.append_search_path(user)
-
 
     def __set_home(self, widget=None):
         if self._canvas != self._selection_canvas:
@@ -164,6 +163,7 @@ class Install(activity.Activity):
         self.add_alert(alert)
         alert.connect('response', lambda x, y: self.remove_alert(x))
 
+
 class SelectionCanvas(Gtk.Grid):
 
     __gsignals__ = {
@@ -172,7 +172,7 @@ class SelectionCanvas(Gtk.Grid):
 
     def __init__(self):
         Gtk.Grid.__init__(self)
-        
+
         self.load_from_journal = self.build_zone('load-from-journal',
              _('Load from Journal'))
         self.download_from_internet = self.build_zone('download',
@@ -190,7 +190,7 @@ class SelectionCanvas(Gtk.Grid):
         self.attach(separator, 1, 0, 1, 1)
         self.attach(self.download_from_internet, 2, 0, 1, 1)
         self.attach(separator2, 3, 0, 1, 1)
-        self.attach(self.remove_extensions, 4, 0, 1, 1)
+        #self.attach(self.remove_extensions, 4, 0, 1, 1)
 
         services = get_webaccount_services()
         if len(services) == 0:
@@ -198,10 +198,11 @@ class SelectionCanvas(Gtk.Grid):
 
         self.show_all()
 
-    def build_zone(self, icon_name, text, zones=3):
+    def build_zone(self, icon_name, text, zones=2):
         xo_color = get_user_color()
         width = Gdk.Screen.width() / zones
-        icon = CanvasIcon(icon_name=icon_name, xo_color=xo_color, pixel_size=width)
+        icon = CanvasIcon(icon_name=icon_name, xo_color=xo_color,
+            pixel_size=width)
 
         label = Gtk.Label()
         label.set_markup("%s" % text)
@@ -225,7 +226,6 @@ class SelectionCanvas(Gtk.Grid):
     def __set_sensitive(self, widget, sensitive=False):
         gray = Gdk.color_parse('gray')
         white = Gdk.color_parse('white')
-        black = Gdk.color_parse('black')
         fill = Gdk.color_parse(get_fill_color())
         stroke = Gdk.color_parse(get_stroke_color())
         if sensitive:
@@ -260,7 +260,6 @@ class RemoveExtensions(Gtk.Grid):
 
             pos += 1
             current += 1
-            
 
         self.show_all()
 
@@ -308,11 +307,12 @@ class RemoveExtensions(Gtk.Grid):
                 shutil.rmtree(os.path.join(cp_path, title))
                 alert_ = NotifyAlert(5)
                 alert_.props.title = _('Removed')
-                alert_.props.msg = _('Extension removed. Please restart sugar for see efects')
+                alert_.props.msg = _('Extension removed.'
+                ' Please restart sugar for see efects')
                 alert_.connect('response',
                     lambda x, y: self.activity.remove_alert(x))
-                self.activity.add_alert(alert_)  
-                self.remove(vbox)              
+                self.activity.add_alert(alert_)
+                self.remove(vbox)
             except:
                 alert_ = NotifyAlert(5)
                 alert_.props.title = _('Error')
@@ -322,13 +322,14 @@ class RemoveExtensions(Gtk.Grid):
                 self.activity.add_alert(alert_)
         else:
             pass
-        
+
         self.activity.remove_alert(alert)
+
 
 class DownloadExtensions(Gtk.Grid):
     def __init__(self, activity):
         Gtk.Grid.__init__(self)
-        self.activity = activity 
+        self.activity = activity
 
         self.build_extensions()
         self.show_all()
@@ -347,6 +348,7 @@ class DownloadExtensions(Gtk.Grid):
             self.show_all()
             pos += 1
 
+
 class Download(Gtk.VBox):
     def __init__(self, data, extension, group, activity):
         Gtk.VBox.__init__(self)
@@ -360,9 +362,8 @@ class Download(Gtk.VBox):
         fd, self.file_path = tempfile.mkstemp(dir=tmp_dir)
         os.close(fd)
 
-
-        xo_color = get_user_color()        
-        icon = CanvasIcon(icon_name=extension, xo_color=xo_color, 
+        xo_color = get_user_color()
+        icon = CanvasIcon(icon_name=extension, xo_color=xo_color,
             pixel_size=size)
         icon.connect('button-press-event', self.download,
             data[extension][0])
@@ -385,9 +386,10 @@ class Download(Gtk.VBox):
         window = self.get_window()
         window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         self.progressbar.set_fraction(0.0)
+
         def internal_callback():
             try:
-                d = urllib.urlretrieve(link, self.file_path,
+                urllib.urlretrieve(link, self.file_path,
                     reporthook=self.progress_changed)
             except Exception, info:
                 alert = NotifyAlert(5)
@@ -413,7 +415,8 @@ class Download(Gtk.VBox):
         if md5sum == self.md5sum:
             alert = NotifyAlert(10)
             alert.props.title = _('Downloaded')
-            alert.props.msg = _('The extension has been downloaded and installed.')
+            alert.props.msg = _('The extension has been downloaded'
+                ' and installed.')
             for alert_ in self.activity._alerts:
                 self.activity.remove_alert(alert_)
             alert.connect('response',
