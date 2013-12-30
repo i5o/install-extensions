@@ -363,7 +363,10 @@ class Download(Gtk.VBox):
         os.close(fd)
 
         xo_color = get_user_color()
-        icon = CanvasIcon(icon_name=extension, xo_color=xo_color,
+        icon_name = extension
+        if icon_name == "Sugar Google Drive":
+            icon_name = 'sugargdrive'
+        icon = CanvasIcon(icon_name=icon_name, xo_color=xo_color,
             pixel_size=size)
         icon.connect('button-press-event', self.download,
             data[extension][0])
